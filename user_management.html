@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>User Management Module</title>
+<style>
+  :root{
+    --bg:#0f1220;
+    --panel:#171b2e;
+    --panel2:#1e2338;
+    --accent:#7c5cff;
+    --accent2:#22d3ee;
+    --text:#e9e9f5;
+    --muted:#9a9db3;
+    --danger:#ff5c7a;
+    --success:#3ddc97;
+    --border:#2a2f4a;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background:radial-gradient(circle at 20% 10%, #1c2140 0%, var(--bg) 55%);
+    color:var(--text);
+    min-height:100vh;
+  }
+  .app{
+    max-width:1100px;
+    margin:0 auto;
+    padding:24px 20px 60px;
+  }
+  header.top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:28px;
+    flex-wrap:wrap;
+    gap:12px;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-weight:700;
+    font-size:20px;
+  }
+  .brand-icon{
+    width:38px;height:38px;border-radius:10px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;
+  }
+  .session-box{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:8px 14px;
+    font-size:13px;
+    color:var(--muted);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .session-box strong{color:var(--text);}
+  .role-pill{
+    padding:2px 10px;
+    border-radius:20px;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+  .role-pill.admin{background:rgba(255,92,122,.15); color:var(--danger); border:1px solid rgba(255,92,122,.4);}
+  .role-pill.customer{background:rgba(61,220,151,.15); color:var(--success); border:1px solid rgba(61,220,151,.4);}
+  .role-pill.none{background:rgba(154,157,179,.15); color:var(--muted); border:1px solid var(--border);}
+
+  .tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+    flex-wrap:wrap;
+  }
+  .tab-btn{
+    background:var(--panel);
+    border:1px solid var(--border);
+    color:var(--muted);
+    padding:10px 18px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:14px;
+    font-weight:600;
+    transition:.2s;
+  }
+  .tab-btn:hover{color:var(--text); border-color:var(--accent);}
+  .tab-btn.active{
+    background:linear-gradient(135deg,var(--accent),#5b3ff0);
+    color:#fff;
+    border-color:transparent;
+  }
+  .tab-btn:disabled{opacity:.35; cursor:not-allowed;}
+
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:var(--radius);
+    padding:26px;
+    animation:fadeIn .25s ease;
+  }
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  .panel h2{margin-top:0; font-size:20px;}
+  .panel p.sub{color:var(--muted); font-size:13px; margin-top:-8px;}
+
+  .grid-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:16px;
+  }
+  @media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+  label{
+    display:block;
+    font-size:13px;
+    color:var(--muted);
+    margin:14px 0 6px;
+    font-weight:600;
+  }
+  input, select{
+    width:100%;
+    padding:11px 13px;
+    border-radius:10px;
+    border:1px solid var(--border);
+    background:var(--panel2);
+    color:var(--text);
+    font-size:14px;
+    outline:none;
+    transition:.2s;
+  }
+  input:focus, select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,.15);}
+  .hint{font-size:12px; color:var(--muted); margin-top:4px;}
+  .error-text{font-size:12px; color:var(--danger); margin-top:4px; display:none;}
+
+  .btn{
+    border:none;
+    padding:12px 20px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    transition:.2s;
+  }
+  .btn-primary{
+    background:linear-gradient(135deg,var(--accent),#5b3ff0);
+    color:#fff;
+  }
+  .btn-primary:hover{filter:brightness(1.1); transform:translateY(-1px);}
+  .btn-outline{
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--text);
+  }
+  .btn-outline:hover{border-color:var(--accent);}
+  .btn-danger{background:rgba(255,92,122,.15); color:var(--danger); border:1px solid rgba(255,92,122,.4);}
+  .btn-danger:hover{background:rgba(255,92,122,.25);}
+  .btn-row{display:flex; gap:10px; margin-top:22px; flex-wrap:wrap;}
+
+  .toast{
+    position:fixed;
+    top:20px; right:20px;
+    background:var(--panel2);
+    border:1px solid var(--border);
+    border-left:4px solid var(--success);
+    padding:14px 18px;
+    border-radius:10px;
+    font-size:13px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    transform:translateX(120%);
+    transition:transform .3s ease;
+    z-index:999;
+    max-width:280px;
+  }
+  .toast.show{transform:translateX(0);}
+  .toast.error{border-left-color:var(--danger);}
+
+  table{width:100%; border-collapse:collapse; margin-top:14px; font-size:13px;}
+  th,td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.5px;}
+  tr:hover td{background:rgba(124,92,255,.05);}
+  .badge{padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;}
+  .badge.active{background:rgba(61,220,151,.15); color:var(--success);}
+  .badge.blocked{background:rgba(255,92,122,.15); color:var(--danger);}
+
+  .avatar{
+    width:70px; height:70px; border-radius:50%;
+    background:linear-gradient(135deg,var(--accent2),var(--accent));
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; font-weight:800; color:#fff;
+    margin-bottom:8px;
+  }
+  .profile-header{display:flex; align-items:center; gap:18px; margin-bottom:6px; flex-wrap:wrap;}
+  .strength-bar{height:6px; border-radius:4px; background:var(--panel2); overflow:hidden; margin-top:8px;}
+  .strength-fill{height:100%; width:0%; transition:.25s; border-radius:4px;}
+  .locked-box{
+    text-align:center;
+    padding:50px 20px;
+    color:var(--muted);
+  }
+  .locked-box .lock-icon{font-size:40px; margin-bottom:10px;}
+  .small-link{background:none;border:none;color:var(--accent2);font-size:13px;cursor:pointer;text-decoration:underline;padding:0;}
+  .divider{height:1px; background:var(--border); margin:22px 0;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;}
+  .checkbox-row{display:flex; align-items:center; gap:8px; margin-top:14px; font-size:13px; color:var(--muted);}
+  .checkbox-row input{width:auto;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <div class="brand-icon">📚</div>
+      <div>BookHaven <span style="color:var(--muted); font-weight:400; font-size:13px;">· User Management</span></div>
+    </div>
+    <div class="session-box" id="sessionBox">
+      <span>Not signed in</span>
+      <span class="role-pill none">Guest</span>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="login" onclick="switchTab('login')">Login</button>
+    <button class="tab-btn" data-tab="register" onclick="switchTab('register')">Register</button>
+    <button class="tab-btn" data-tab="profile" id="profileTabBtn" onclick="switchTab('profile')">Profile</button>
+    <button class="tab-btn" data-tab="admin" id="adminTabBtn" onclick="switchTab('admin')">Admin · Users</button>
+  </div>
+
+  <!-- LOGIN -->
+  <div class="panel" id="tab-login">
+    <h2>Welcome back</h2>
+    <p class="sub">Sign in to your BookHaven account.</p>
+
+    <div class="grid-2">
+      <div>
+        <label>Email</label>
+        <input type="email" id="loginEmail" placeholder="you@example.com">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+        <div class="checkbox-row">
+          <input type="checkbox" id="rememberMe"><label for="rememberMe" style="margin:0;">Remember me</label>
+        </div>
+        <div class="error-text" id="loginError"></div>
+        <div class="btn-row">
+          <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+          <button class="btn btn-outline" onclick="switchTab('register')">Create account</button>
+        </div>
+      </div>
+      <div>
+        <label>Demo accounts</label>
+        <div class="hint" style="line-height:1.8;">
+          <strong>Admin:</strong> admin@bookhaven.com / Admin@123<br>
+          <strong>Customer:</strong> jane@bookhaven.com / Jane@123<br><br>
+          Use these to explore role-based access, or register a new customer account.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REGISTER -->
+  <div class="panel" id="tab-register" style="display:none;">
+    <h2>Create your account</h2>
+    <p class="sub">New accounts are registered as <strong>Customer</strong> by default.</p>
+    <div class="grid-2">
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="regName" placeholder="Jane Doe">
+        <label>Email</label>
+        <input type="email" id="regEmail" placeholder="you@example.com">
+        <div class="error-text" id="regEmailError"></div>
+      </div>
+      <div>
+        <label>Password</label>
+        <input type="password" id="regPassword" oninput="checkStrength()" placeholder="Create a password">
+        <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+        <div class="hint" id="strengthText">Password strength</div>
+        <label>Confirm Password</label>
+        <input type="password" id="regConfirm" placeholder="Re-enter password">
+        <div class="error-text" id="regConfirmError"></div>
+      </div>
+    </div>
+    <div class="checkbox-row">
+      <input type="checkbox" id="agreeTerms"><label for="agreeTerms" style="margin:0;">I agree to the Terms & Privacy Policy</label>
+    </div>
+    <div class="error-text" id="regTermsError"></div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="handleRegister()">Create Account</button>
+      <button class="btn btn-outline" onclick="switchTab('login')">Already have an account?</button>
+    </div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="panel" id="tab-profile" style="display:none;"></div>
+
+  <!-- ADMIN -->
+  <div class="panel" id="tab-admin" style="display:none;"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ---------- In-memory data (no backend, no storage APIs) ----------
+let users = [
+  {id:1, name:"System Admin", email:"admin@bookhaven.com", password:"Admin@123", role:"admin", status:"active", joined:"2024-01-10"},
+  {id:2, name:"Jane Doe", email:"jane@bookhaven.com", password:"Jane@123", role:"customer", status:"active", joined:"2024-03-22"},
+  {id:3, name:"Mike Ross", email:"mike@bookhaven.com", password:"Mike@123", role:"customer", status:"active", joined:"2024-05-02"},
+  {id:4, name:"Priya Nair", email:"priya@bookhaven.com", password:"Priya@123", role:"customer", status:"blocked", joined:"2024-06-14"},
+];
+let currentUser = null;
+let editingSelf = false;
+
+function toast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function switchTab(name){
+  if((name==='profile' || name==='admin') && !currentUser){
+    toast('Please sign in first', true);
+    name = 'login';
+  }
+  if(name==='admin' && currentUser && currentUser.role!=='admin'){
+    toast('Admins only', true);
+    name = 'profile';
+  }
+  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).style.display='block';
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+  if(name==='profile') renderProfile();
+  if(name==='admin') renderAdmin();
+}
+
+function updateSessionBox(){
+  const box = document.getElementById('sessionBox');
+  const profileBtn = document.getElementById('profileTabBtn');
+  const adminBtn = document.getElementById('adminTabBtn');
+  if(currentUser){
+    box.innerHTML = `<span>Signed in as <strong>${currentUser.name}</strong></span>
+      <span class="role-pill ${currentUser.role}">${currentUser.role}</span>
+      <button class="small-link" onclick="handleLogout()">Logout</button>`;
+    profileBtn.disabled = false;
+    adminBtn.disabled = currentUser.role !== 'admin';
+    adminBtn.style.display = currentUser.role === 'admin' ? 'inline-block' : 'none';
+  } else {
+    box.innerHTML = `<span>Not signed in</span><span class="role-pill none">Guest</span>`;
+    profileBtn.disabled = true;
+    adminBtn.disabled = true;
+    adminBtn.style.display = 'none';
+  }
+}
+
+function handleLogin(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginError');
+  errEl.style.display='none';
+
+  const user = users.find(u=>u.email.toLowerCase()===email);
+  if(!user || user.password !== pass){
+    errEl.textContent = 'Invalid email or password.';
+    errEl.style.display='block';
+    return;
+  }
+  if(user.status === 'blocked'){
+    errEl.textContent = 'This account has been blocked. Contact support.';
+    errEl.style.display='block';
+    return;
+  }
+  currentUser = user;
+  updateSessionBox();
+  toast(`Welcome, ${user.name}!`);
+  switchTab('profile');
+}
+
+function handleLogout(){
+  currentUser = null;
+  updateSessionBox();
+  toast('Logged out successfully');
+  switchTab('login');
+}
+
+function checkStrength(){
+  const val = document.getElementById('regPassword').value;
+  const fill = document.getElementById('strengthFill');
+  const text = document.getElementById('strengthText');
+  let score = 0;
+  if(val.length >= 8) score++;
+  if(/[A-Z]/.test(val)) score++;
+  if(/[0-9]/.test(val)) score++;
+  if(/[^A-Za-z0-9]/.test(val)) score++;
+  const levels = [
+    {w:'10%', c:'var(--danger)', t:'Very weak'},
+    {w:'35%', c:'var(--danger)', t:'Weak'},
+    {w:'60%', c:'#f5a623', t:'Fair'},
+    {w:'85%', c:'var(--success)', t:'Good'},
+    {w:'100%', c:'var(--success)', t:'Strong'},
+  ];
+  const lvl = levels[score];
+  fill.style.width = val.length ? lvl.w : '0%';
+  fill.style.background = lvl.c;
+  text.textContent = val.length ? lvl.t : 'Password strength';
+}
+
+function handleRegister(){
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('regPassword').value;
+  const confirm = document.getElementById('regConfirm').value;
+  const agree = document.getElementById('agreeTerms').checked;
+
+  const emailErr = document.getElementById('regEmailError');
+  const confirmErr = document.getElementById('regConfirmError');
+  const termsErr = document.getElementById('regTermsError');
+  emailErr.style.display='none'; confirmErr.style.display='none'; termsErr.style.display='none';
+
+  let valid = true;
+  if(!name || !email || !pass){
+    toast('Please fill in all required fields', true);
+    return;
+  }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    emailErr.textContent = 'Enter a valid email address.';
+    emailErr.style.display='block';
+    valid = false;
+  } else if(users.some(u=>u.email.toLowerCase()===email)){
+    emailErr.textContent = 'An account with this email already exists.';
+    emailErr.style.display='block';
+    valid = false;
+  }
+  if(pass !== confirm){
+    confirmErr.textContent = 'Passwords do not match.';
+    confirmErr.style.display='block';
+    valid = false;
+  }
+  if(!agree){
+    termsErr.textContent = 'You must agree to the terms to continue.';
+    termsErr.style.display='block';
+    valid = false;
+  }
+  if(!valid) return;
+
+  const newUser = {
+    id: users.length ? Math.max(...users.map(u=>u.id))+1 : 1,
+    name, email, password:pass, role:'customer', status:'active',
+    joined: new Date().toISOString().slice(0,10)
+  };
+  users.push(newUser);
+  currentUser = newUser;
+  updateSessionBox();
+  toast('Account created successfully!');
+  ['regName','regEmail','regPassword','regConfirm'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('agreeTerms').checked = false;
+  switchTab('profile');
+}
+
+function renderProfile(){
+  const panel = document.getElementById('tab-profile');
+  if(!currentUser){
+    panel.innerHTML = `<div class="locked-box"><div class="lock-icon">🔒</div>Please sign in to view your profile.</div>`;
+    return;
+  }
+  const u = currentUser;
+  const initials = u.name.split(' ').map(p=>p[0]).join('').slice(0,2).toUpperCase();
+  panel.innerHTML = `
+    <div class="profile-header">
+      <div class="avatar">${initials}</div>
+      <div>
+        <h2 style="margin:0;">${u.name}</h2>
+        <span class="role-pill ${u.role}">${u.role}</span>
+        <div class="hint">Member since ${u.joined}</div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="grid-2">
+      <div>
+        <label>Full Name</label>
+        <input type="text" id="pfName" value="${u.name}">
+        <label>Email</label>
+        <input type="email" id="pfEmail" value="${u.email}">
+      </div>
+      <div>
+        <label>New Password <span style="color:var(--muted); font-weight:400;">(leave blank to keep current)</span></label>
+        <input type="password" id="pfPassword" placeholder="••••••••">
+        <label>Account Status</label>
+        <input type="text" value="${u.status}" disabled>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="saveProfile()">Save Changes</button>
+      <button class="btn btn-danger" onclick="deactivateAccount()">Deactivate Account</button>
+    </div>
+  `;
+}
+
+function saveProfile(){
+  const name = document.getElementById('pfName').value.trim();
+  const email = document.getElementById('pfEmail').value.trim().toLowerCase();
+  const pass = document.getElementById('pfPassword').value;
+
+  if(!name || !email){ toast('Name and email are required', true); return; }
+  if(users.some(u=>u.email.toLowerCase()===email && u.id!==currentUser.id)){
+    toast('That email is already in use', true); return;
+  }
+  currentUser.name = name;
+  currentUser.email = email;
+  if(pass) currentUser.password = pass;
+  updateSessionBox();
+  renderProfile();
+  toast('Profile updated successfully');
+}
+
+function deactivateAccount(){
+  if(!confirm('Are you sure you want to deactivate your account?')) return;
+  currentUser.status = 'blocked';
+  toast('Account deactivated', true);
+  handleLogout();
+}
+
+function renderAdmin(){
+  const panel = document.getElementById('tab-admin');
+  if(!currentUser || currentUser.role!=='admin'){
+    panel.innerHTML = `<div class="locked-box"><div class="lock-icon">🔒</div>Admin access required.</div>`;
+    return;
+  }
+  const rows = users.map(u=>`
+    <tr>
+      <td>${u.id}</td>
+      <td>${u.name}</td>
+      <td>${u.email}</td>
+      <td><span class="role-pill ${u.role}">${u.role}</span></td>
+      <td><span class="badge ${u.status==='active'?'active':'blocked'}">${u.status}</span></td>
+      <td>${u.joined}</td>
+      <td>
+        <button class="small-link" onclick="toggleRole(${u.id})">Toggle Role</button> ·
+        <button class="small-link" onclick="toggleStatus(${u.id})">${u.status==='active'?'Block':'Unblock'}</button>
+      </td>
+    </tr>
+  `).join('');
+  panel.innerHTML = `
+    <div class="flex-between">
+      <div>
+        <h2 style="margin-bottom:0;">User Management</h2>
+        <p class="sub">Manage roles and access for all registered users.</p>
+      </div>
+      <div class="hint">${users.length} total users</div>
+    </div>
+    <table>
+      <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+}
+
+function toggleRole(id){
+  const u = users.find(x=>x.id===id);
+  if(u.id === currentUser.id){ toast("You can't change your own role here", true); return; }
+  u.role = u.role === 'admin' ? 'customer' : 'admin';
+  renderAdmin();
+  toast(`${u.name} is now ${u.role}`);
+}
+
+function toggleStatus(id){
+  const u = users.find(x=>x.id===id);
+  if(u.id === currentUser.id){ toast("You can't block your own account here", true); return; }
+  u.status = u.status === 'active' ? 'blocked' : 'active';
+  renderAdmin();
+  toast(`${u.name} is now ${u.status}`);
+}
+
+updateSessionBox();
+</script>
+</body>
+</html>
