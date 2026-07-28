@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book & Inventory Management Module</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#171b2e; --panel2:#1e2338;
+    --accent:#7c5cff; --accent2:#22d3ee; --text:#e9e9f5; --muted:#9a9db3;
+    --danger:#ff5c7a; --success:#3ddc97; --warn:#f5a623; --border:#2a2f4a; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background:radial-gradient(circle at 20% 10%, #1c2140 0%, var(--bg) 55%); color:var(--text); min-height:100vh;}
+  .app{max-width:1200px; margin:0 auto; padding:24px 20px 60px;}
+  header.top{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:20px;}
+  .brand-icon{width:38px;height:38px;border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex;align-items:center;justify-content:center; font-size:18px;}
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px;}
+  @media (max-width:800px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px;}
+  .stat-card .num{font-size:24px; font-weight:800;}
+  .stat-card .lbl{font-size:12px; color:var(--muted); margin-top:2px;}
+  .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .tab-btn{background:var(--panel); border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; transition:.2s;}
+  .tab-btn:hover{color:var(--text); border-color:var(--accent);}
+  .tab-btn.active{background:linear-gradient(135deg,var(--accent),#5b3ff0); color:#fff; border-color:transparent;}
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:26px; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .panel h2{margin-top:0; font-size:20px;}
+  .panel p.sub{color:var(--muted); font-size:13px; margin-top:-8px;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+  .search-bar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px;}
+  input, select, textarea{padding:10px 13px; border-radius:10px; border:1px solid var(--border); background:var(--panel2); color:var(--text); font-size:14px; outline:none; transition:.2s;}
+  input:focus, select:focus, textarea:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,.15);}
+  .search-bar input[type=text]{flex:1; min-width:180px;}
+  label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px; font-weight:600;}
+  .btn{border:none; padding:11px 18px; border-radius:10px; font-weight:700; font-size:14px; cursor:pointer; transition:.2s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#5b3ff0); color:#fff;}
+  .btn-primary:hover{filter:brightness(1.1); transform:translateY(-1px);}
+  .btn-outline{background:transparent; border:1px solid var(--border); color:var(--text);}
+  .btn-outline:hover{border-color:var(--accent);}
+  .btn-danger{background:rgba(255,92,122,.15); color:var(--danger); border:1px solid rgba(255,92,122,.4);}
+  .btn-danger:hover{background:rgba(255,92,122,.25);}
+  .btn-sm{padding:6px 12px; font-size:12px;}
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+  @media (max-width:640px){.grid-2{grid-template-columns:1fr;}}
+
+  .book-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px;}
+  .book-card{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:6px; transition:.2s;}
+  .book-card:hover{border-color:var(--accent); transform:translateY(-2px);}
+  .cover{height:130px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:34px; margin-bottom:6px;}
+  .book-title{font-weight:700; font-size:15px; line-height:1.3;}
+  .book-author{color:var(--muted); font-size:12px;}
+  .book-meta{display:flex; justify-content:space-between; align-items:center; margin-top:6px; font-size:12px;}
+  .price{font-weight:800; color:var(--accent2); font-size:16px;}
+  .badge{padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;}
+  .badge.instock{background:rgba(61,220,151,.15); color:var(--success);}
+  .badge.low{background:rgba(245,166,35,.15); color:var(--warn);}
+  .badge.out{background:rgba(255,92,122,.15); color:var(--danger);}
+  .genre-tag{display:inline-block; background:rgba(124,92,255,.15); color:#b9a9ff; padding:2px 9px; border-radius:20px; font-size:11px; margin-top:4px; width:fit-content;}
+  .card-actions{display:flex; gap:6px; margin-top:10px;}
+
+  table{width:100%; border-collapse:collapse; margin-top:6px; font-size:13px;}
+  th,td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.5px;}
+  tr:hover td{background:rgba(124,92,255,.05);}
+  .stock-input{width:70px; padding:6px 8px; font-size:13px;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:998; padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:26px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto;}
+  .modal h3{margin-top:0;}
+  .close-x{float:right; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;}
+
+  .toast{position:fixed; top:20px; right:20px; background:var(--panel2); border:1px solid var(--border); border-left:4px solid var(--success); padding:14px 18px; border-radius:10px; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,.4); transform:translateX(120%); transition:transform .3s ease; z-index:999; max-width:280px;}
+  .toast.show{transform:translateX(0);}
+  .toast.error{border-left-color:var(--danger);}
+  .empty-state{text-align:center; padding:50px 20px; color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="brand-icon">📖</div>Book & Inventory Management</div>
+  </header>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="catalog" onclick="switchTab('catalog')">Catalog</button>
+    <button class="tab-btn" data-tab="categories" onclick="switchTab('categories')">Categories & Genres</button>
+    <button class="tab-btn" data-tab="inventory" onclick="switchTab('inventory')">Inventory / Stock</button>
+  </div>
+
+  <!-- CATALOG -->
+  <div class="panel" id="tab-catalog">
+    <div class="flex-between">
+      <div>
+        <h2 style="margin-bottom:0;">Book Catalog</h2>
+        <p class="sub">Browse, search, and manage your book collection.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openBookModal()">+ Add Book</button>
+    </div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search by title or author..." oninput="renderCatalog()">
+      <select id="genreFilter" onchange="renderCatalog()"><option value="">All Genres</option></select>
+      <select id="availFilter" onchange="renderCatalog()">
+        <option value="">All Availability</option>
+        <option value="instock">In Stock</option>
+        <option value="low">Low Stock</option>
+        <option value="out">Out of Stock</option>
+      </select>
+      <select id="sortFilter" onchange="renderCatalog()">
+        <option value="title">Sort: Title</option>
+        <option value="price-asc">Sort: Price ↑</option>
+        <option value="price-desc">Sort: Price ↓</option>
+        <option value="stock">Sort: Stock</option>
+      </select>
+    </div>
+    <div class="book-grid" id="bookGrid"></div>
+  </div>
+
+  <!-- CATEGORIES -->
+  <div class="panel" id="tab-categories" style="display:none;">
+    <div class="flex-between">
+      <div>
+        <h2 style="margin-bottom:0;">Categories & Genres</h2>
+        <p class="sub">Organize your catalog into genres.</p>
+      </div>
+      <button class="btn btn-primary" onclick="openGenreModal()">+ Add Genre</button>
+    </div>
+    <table>
+      <thead><tr><th>Genre</th><th>Book Count</th><th>Actions</th></tr></thead>
+      <tbody id="genreTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- INVENTORY -->
+  <div class="panel" id="tab-inventory" style="display:none;">
+    <div class="flex-between">
+      <div>
+        <h2 style="margin-bottom:0;">Inventory / Stock Management</h2>
+        <p class="sub">Update stock levels and monitor availability.</p>
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Genre</th><th>Price</th><th>Stock</th><th>Status</th><th>Update</th></tr></thead>
+      <tbody id="inventoryTableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- BOOK MODAL -->
+<div class="modal-overlay" id="bookModal">
+  <div class="modal">
+    <button class="close-x" onclick="closeBookModal()">&times;</button>
+    <h3 id="bookModalTitle">Add Book</h3>
+    <input type="hidden" id="bookId">
+    <label>Title</label>
+    <input type="text" id="bookTitle" placeholder="Book title">
+    <label>Author</label>
+    <input type="text" id="bookAuthor" placeholder="Author name">
+    <div class="grid-2">
+      <div>
+        <label>Genre</label>
+        <select id="bookGenre"></select>
+      </div>
+      <div>
+        <label>Price (₹)</label>
+        <input type="number" id="bookPrice" min="0" step="1" placeholder="299">
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <label>Stock Quantity</label>
+        <input type="number" id="bookStock" min="0" step="1" placeholder="10">
+      </div>
+      <div>
+        <label>Cover Emoji</label>
+        <input type="text" id="bookEmoji" maxlength="2" placeholder="📘">
+      </div>
+    </div>
+    <label>Description</label>
+    <textarea id="bookDesc" rows="3" placeholder="Short description..."></textarea>
+    <div class="card-actions" style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="saveBook()">Save Book</button>
+      <button class="btn btn-outline" onclick="closeBookModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- GENRE MODAL -->
+<div class="modal-overlay" id="genreModal">
+  <div class="modal">
+    <button class="close-x" onclick="closeGenreModal()">&times;</button>
+    <h3>Add Genre</h3>
+    <label>Genre Name</label>
+    <input type="text" id="genreName" placeholder="e.g. Fantasy">
+    <div class="card-actions" style="margin-top:18px;">
+      <button class="btn btn-primary" onclick="saveGenre()">Add Genre</button>
+      <button class="btn btn-outline" onclick="closeGenreModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOK DETAIL MODAL -->
+<div class="modal-overlay" id="detailModal">
+  <div class="modal">
+    <button class="close-x" onclick="closeDetailModal()">&times;</button>
+    <div id="detailContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let genres = ["Fiction","Fantasy","Mystery","Romance","Sci-Fi","Non-Fiction","Biography","Self-Help"];
+
+let books = [
+  {id:1, title:"The Silent Orbit", author:"Elena Marsh", genre:"Sci-Fi", price:349, stock:24, emoji:"🚀", desc:"A gripping tale of survival on a dying space station."},
+  {id:2, title:"Whispers of the Old Wood", author:"Callum Reyes", genre:"Fantasy", price:299, stock:6, emoji:"🌲", desc:"A young mage discovers a forest that remembers everything."},
+  {id:3, title:"Beneath a Borrowed Sky", author:"Anita Rao", genre:"Fiction", price:249, stock:0, emoji:"🌤️", desc:"Two strangers, one train, and a story that spans a lifetime."},
+  {id:4, title:"The Cipher of Rue Marchand", author:"Louis Fontaine", genre:"Mystery", price:399, stock:15, emoji:"🔍", desc:"A detective unravels a decades-old Parisian mystery."},
+  {id:5, title:"Hearts in Autumn Light", author:"Priya Menon", genre:"Romance", price:279, stock:3, emoji:"🍂", desc:"A slow-burn romance set against a changing season."},
+  {id:6, title:"Atoms & Ashes", author:"Dr. Wren Holt", genre:"Non-Fiction", price:449, stock:18, emoji:"⚛️", desc:"An accessible history of nuclear science and its cost."},
+  {id:7, title:"The Woman Who Built Bridges", author:"Sofia Adeyemi", genre:"Biography", price:329, stock:9, emoji:"🌉", desc:"The life of a pioneering civil engineer."},
+  {id:8, title:"Small Habits, Big Change", author:"Marcus Lee", genre:"Self-Help", price:199, stock:40, emoji:"🌱", desc:"Practical steps toward lasting personal growth."},
+];
+
+function nextId(arr){ return arr.length ? Math.max(...arr.map(x=>x.id))+1 : 1; }
+
+function toast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).style.display='block';
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+  if(name==='catalog') renderCatalog();
+  if(name==='categories') renderGenres();
+  if(name==='inventory') renderInventory();
+}
+
+function stockStatus(stock){
+  if(stock === 0) return {cls:'out', label:'Out of Stock'};
+  if(stock <= 8) return {cls:'low', label:'Low Stock'};
+  return {cls:'instock', label:'In Stock'};
+}
+
+function renderStats(){
+  const total = books.length;
+  const totalStock = books.reduce((s,b)=>s+b.stock,0);
+  const lowStock = books.filter(b=>b.stock>0 && b.stock<=8).length;
+  const outStock = books.filter(b=>b.stock===0).length;
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="lbl">Total Titles</div></div>
+    <div class="stat-card"><div class="num">${totalStock}</div><div class="lbl">Units in Stock</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--warn);">${lowStock}</div><div class="lbl">Low Stock Items</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--danger);">${outStock}</div><div class="lbl">Out of Stock</div></div>
+  `;
+}
+
+function populateGenreSelects(){
+  const filter = document.getElementById('genreFilter');
+  const modalSel = document.getElementById('bookGenre');
+  const currentFilter = filter.value;
+  filter.innerHTML = '<option value="">All Genres</option>' + genres.map(g=>`<option value="${g}">${g}</option>`).join('');
+  filter.value = currentFilter;
+  modalSel.innerHTML = genres.map(g=>`<option value="${g}">${g}</option>`).join('');
+}
+
+function renderCatalog(){
+  renderStats();
+  populateGenreSelects();
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const genreF = document.getElementById('genreFilter').value;
+  const availF = document.getElementById('availFilter').value;
+  const sortF = document.getElementById('sortFilter').value;
+
+  let list = books.filter(b=>{
+    const matchesQ = b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q);
+    const matchesGenre = !genreF || b.genre === genreF;
+    const st = stockStatus(b.stock).cls;
+    const matchesAvail = !availF || st === availF;
+    return matchesQ && matchesGenre && matchesAvail;
+  });
+
+  if(sortF==='title') list.sort((a,b)=>a.title.localeCompare(b.title));
+  if(sortF==='price-asc') list.sort((a,b)=>a.price-b.price);
+  if(sortF==='price-desc') list.sort((a,b)=>b.price-a.price);
+  if(sortF==='stock') list.sort((a,b)=>a.stock-b.stock);
+
+  const grid = document.getElementById('bookGrid');
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">No books match your search.</div>`;
+    return;
+  }
+  grid.innerHTML = list.map(b=>{
+    const st = stockStatus(b.stock);
+    return `
+    <div class="book-card">
+      <div class="cover" style="background:linear-gradient(135deg, rgba(124,92,255,.25), rgba(34,211,238,.2));">${b.emoji||'📘'}</div>
+      <div class="genre-tag">${b.genre}</div>
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">by ${b.author}</div>
+      <div class="book-meta">
+        <span class="price">₹${b.price}</span>
+        <span class="badge ${st.cls}">${st.label}</span>
+      </div>
+      <div class="card-actions">
+        <button class="btn btn-outline btn-sm" onclick="viewBook(${b.id})">Details</button>
+        <button class="btn btn-outline btn-sm" onclick="openBookModal(${b.id})">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteBook(${b.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function viewBook(id){
+  const b = books.find(x=>x.id===id);
+  const st = stockStatus(b.stock);
+  document.getElementById('detailContent').innerHTML = `
+    <div class="cover" style="height:100px; width:100px; margin:0 auto 14px; font-size:40px; background:linear-gradient(135deg, rgba(124,92,255,.25), rgba(34,211,238,.2));">${b.emoji||'📘'}</div>
+    <h3 style="text-align:center; margin-bottom:2px;">${b.title}</h3>
+    <p style="text-align:center; color:var(--muted); margin-top:0;">by ${b.author}</p>
+    <div class="flex-between" style="justify-content:center; gap:16px;">
+      <span class="genre-tag">${b.genre}</span>
+      <span class="badge ${st.cls}">${st.label}</span>
+    </div>
+    <p style="color:var(--muted); font-size:14px; line-height:1.6;">${b.desc || 'No description available.'}</p>
+    <div class="grid-2" style="text-align:center;">
+      <div><div style="font-size:20px; font-weight:800; color:var(--accent2);">₹${b.price}</div><div class="hint" style="color:var(--muted); font-size:12px;">Price</div></div>
+      <div><div style="font-size:20px; font-weight:800;">${b.stock}</div><div class="hint" style="color:var(--muted); font-size:12px;">Units Available</div></div>
+    </div>
+  `;
+  document.getElementById('detailModal').classList.add('show');
+}
+function closeDetailModal(){ document.getElementById('detailModal').classList.remove('show'); }
+
+function openBookModal(id){
+  populateGenreSelects();
+  document.getElementById('bookModalTitle').textContent = id ? 'Edit Book' : 'Add Book';
+  if(id){
+    const b = books.find(x=>x.id===id);
+    document.getElementById('bookId').value = b.id;
+    document.getElementById('bookTitle').value = b.title;
+    document.getElementById('bookAuthor').value = b.author;
+    document.getElementById('bookGenre').value = b.genre;
+    document.getElementById('bookPrice').value = b.price;
+    document.getElementById('bookStock').value = b.stock;
+    document.getElementById('bookEmoji').value = b.emoji || '';
+    document.getElementById('bookDesc').value = b.desc || '';
+  } else {
+    document.getElementById('bookId').value = '';
+    ['bookTitle','bookAuthor','bookPrice','bookStock','bookEmoji','bookDesc'].forEach(id=>document.getElementById(id).value='');
+  }
+  document.getElementById('bookModal').classList.add('show');
+}
+function closeBookModal(){ document.getElementById('bookModal').classList.remove('show'); }
+
+function saveBook(){
+  const id = document.getElementById('bookId').value;
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const genre = document.getElementById('bookGenre').value;
+  const price = parseFloat(document.getElementById('bookPrice').value);
+  const stock = parseInt(document.getElementById('bookStock').value);
+  const emoji = document.getElementById('bookEmoji').value.trim();
+  const desc = document.getElementById('bookDesc').value.trim();
+
+  if(!title || !author || isNaN(price) || isNaN(stock) || price<0 || stock<0){
+    toast('Please fill in all required fields with valid values', true);
+    return;
+  }
+
+  if(id){
+    const b = books.find(x=>x.id===parseInt(id));
+    Object.assign(b, {title, author, genre, price, stock, emoji, desc});
+    toast('Book updated successfully');
+  } else {
+    books.push({id: nextId(books), title, author, genre, price, stock, emoji, desc});
+    toast('Book added to catalog');
+  }
+  closeBookModal();
+  renderCatalog();
+}
+
+function deleteBook(id){
+  if(!confirm('Delete this book from the catalog?')) return;
+  books = books.filter(b=>b.id!==id);
+  toast('Book deleted', true);
+  renderCatalog();
+}
+
+function renderGenres(){
+  const tbody = document.getElementById('genreTableBody');
+  tbody.innerHTML = genres.map(g=>{
+    const count = books.filter(b=>b.genre===g).length;
+    return `<tr>
+      <td><span class="genre-tag">${g}</span></td>
+      <td>${count} book${count!==1?'s':''}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteGenre('${g}')">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openGenreModal(){ document.getElementById('genreName').value=''; document.getElementById('genreModal').classList.add('show'); }
+function closeGenreModal(){ document.getElementById('genreModal').classList.remove('show'); }
+
+function saveGenre(){
+  const name = document.getElementById('genreName').value.trim();
+  if(!name){ toast('Enter a genre name', true); return; }
+  if(genres.some(g=>g.toLowerCase()===name.toLowerCase())){ toast('Genre already exists', true); return; }
+  genres.push(name);
+  closeGenreModal();
+  renderGenres();
+  toast('Genre added');
+}
+
+function deleteGenre(g){
+  const count = books.filter(b=>b.genre===g).length;
+  if(count>0){ toast(`Cannot remove "${g}" — ${count} book(s) use it`, true); return; }
+  if(!confirm(`Remove genre "${g}"?`)) return;
+  genres = genres.filter(x=>x!==g);
+  renderGenres();
+  toast('Genre removed');
+}
+
+function renderInventory(){
+  const tbody = document.getElementById('inventoryTableBody');
+  tbody.innerHTML = books.map(b=>{
+    const st = stockStatus(b.stock);
+    return `<tr>
+      <td>${b.title}</td>
+      <td><span class="genre-tag">${b.genre}</span></td>
+      <td>₹${b.price}</td>
+      <td><input type="number" class="stock-input" min="0" value="${b.stock}" onchange="updateStock(${b.id}, this.value)"></td>
+      <td><span class="badge ${st.cls}" id="stockBadge-${b.id}">${st.label}</span></td>
+      <td>
+        <button class="btn btn-outline btn-sm" onclick="adjustStock(${b.id}, 1)">+1</button>
+        <button class="btn btn-outline btn-sm" onclick="adjustStock(${b.id}, -1)">-1</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateStock(id, val){
+  const b = books.find(x=>x.id===id);
+  const num = parseInt(val);
+  if(isNaN(num) || num<0){ toast('Enter a valid stock number', true); renderInventory(); return; }
+  b.stock = num;
+  toast(`${b.title} stock set to ${num}`);
+  renderInventory();
+  renderStats();
+}
+
+function adjustStock(id, delta){
+  const b = books.find(x=>x.id===id);
+  b.stock = Math.max(0, b.stock + delta);
+  renderInventory();
+  renderStats();
+}
+
+renderCatalog();
+</script>
+</body>
+</html>
