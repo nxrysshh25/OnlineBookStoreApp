@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Order & Sales Management Module</title>
+<style>
+  :root{
+    --bg:#0f1220; --panel:#171b2e; --panel2:#1e2338;
+    --accent:#7c5cff; --accent2:#22d3ee; --text:#e9e9f5; --muted:#9a9db3;
+    --danger:#ff5c7a; --success:#3ddc97; --warn:#f5a623; --border:#2a2f4a; --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; font-family:'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background:radial-gradient(circle at 20% 10%, #1c2140 0%, var(--bg) 55%); color:var(--text); min-height:100vh;}
+  .app{max-width:1200px; margin:0 auto; padding:24px 20px 60px;}
+  header.top{display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px;}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:20px;}
+  .brand-icon{width:38px;height:38px;border-radius:10px; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex;align-items:center;justify-content:center; font-size:18px;}
+  .cart-pill{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:9px 16px; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:8px; font-weight:600;}
+  .cart-pill:hover{border-color:var(--accent);}
+  .cart-count{background:var(--accent); color:#fff; border-radius:20px; padding:1px 8px; font-size:11px;}
+
+  .tabs{display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;}
+  .tab-btn{background:var(--panel); border:1px solid var(--border); color:var(--muted); padding:10px 18px; border-radius:10px; cursor:pointer; font-size:14px; font-weight:600; transition:.2s;}
+  .tab-btn:hover{color:var(--text); border-color:var(--accent);}
+  .tab-btn.active{background:linear-gradient(135deg,var(--accent),#5b3ff0); color:#fff; border-color:transparent;}
+  .panel{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:26px; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+  .panel h2{margin-top:0; font-size:20px;}
+  .panel p.sub{color:var(--muted); font-size:13px; margin-top:-8px;}
+  .flex-between{display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;}
+
+  .stat-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px;}
+  @media (max-width:800px){.stat-row{grid-template-columns:repeat(2,1fr);}}
+  .stat-card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px;}
+  .stat-card .num{font-size:22px; font-weight:800;}
+  .stat-card .lbl{font-size:12px; color:var(--muted); margin-top:2px;}
+
+  .shop-layout{display:grid; grid-template-columns:2.2fr 1fr; gap:20px;}
+  @media (max-width:900px){.shop-layout{grid-template-columns:1fr;}}
+  .book-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px;}
+  .book-card{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:6px; transition:.2s;}
+  .book-card:hover{border-color:var(--accent); transform:translateY(-2px);}
+  .cover{height:90px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:30px; background:linear-gradient(135deg, rgba(124,92,255,.25), rgba(34,211,238,.2));}
+  .book-title{font-weight:700; font-size:14px; line-height:1.3;}
+  .book-author{color:var(--muted); font-size:11px;}
+  .price{font-weight:800; color:var(--accent2); font-size:15px;}
+  .btn{border:none; padding:10px 16px; border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:.2s;}
+  .btn-primary{background:linear-gradient(135deg,var(--accent),#5b3ff0); color:#fff;}
+  .btn-primary:hover{filter:brightness(1.1); transform:translateY(-1px);}
+  .btn-primary:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+  .btn-outline{background:transparent; border:1px solid var(--border); color:var(--text);}
+  .btn-outline:hover{border-color:var(--accent);}
+  .btn-danger{background:rgba(255,92,122,.15); color:var(--danger); border:1px solid rgba(255,92,122,.4);}
+  .btn-danger:hover{background:rgba(255,92,122,.25);}
+  .btn-sm{padding:6px 10px; font-size:12px;}
+  .stock-note{font-size:11px; color:var(--muted);}
+
+  .cart-panel{background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:18px; align-self:start; position:sticky; top:20px;}
+  .cart-item{display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border); font-size:13px; gap:8px;}
+  .cart-item:last-child{border-bottom:none;}
+  .qty-controls{display:flex; align-items:center; gap:6px;}
+  .qty-controls button{width:24px; height:24px; border-radius:6px; border:1px solid var(--border); background:var(--panel); color:var(--text); cursor:pointer;}
+  .cart-summary-row{display:flex; justify-content:space-between; font-size:13px; margin-top:8px; color:var(--muted);}
+  .cart-summary-row.total{color:var(--text); font-weight:800; font-size:16px; margin-top:12px;}
+
+  label{display:block; font-size:13px; color:var(--muted); margin:12px 0 6px; font-weight:600;}
+  input, select{width:100%; padding:10px 13px; border-radius:10px; border:1px solid var(--border); background:var(--panel); color:var(--text); font-size:14px; outline:none;}
+  input:focus, select:focus{border-color:var(--accent); box-shadow:0 0 0 3px rgba(124,92,255,.15);}
+
+  table{width:100%; border-collapse:collapse; margin-top:6px; font-size:13px;}
+  th,td{padding:10px 12px; text-align:left; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); font-weight:600; text-transform:uppercase; font-size:11px; letter-spacing:.5px;}
+  tr:hover td{background:rgba(124,92,255,.05);}
+  .badge{padding:3px 9px; border-radius:20px; font-size:11px; font-weight:700;}
+  .badge.placed{background:rgba(34,211,238,.15); color:var(--accent2);}
+  .badge.processing{background:rgba(245,166,35,.15); color:var(--warn);}
+  .badge.shipped{background:rgba(124,92,255,.15); color:#b9a9ff;}
+  .badge.delivered{background:rgba(61,220,151,.15); color:var(--success);}
+  .badge.cancelled{background:rgba(255,92,122,.15); color:var(--danger);}
+
+  .tracker{display:flex; justify-content:space-between; margin:20px 0; position:relative;}
+  .tracker::before{content:''; position:absolute; top:14px; left:0; right:0; height:2px; background:var(--border); z-index:0;}
+  .tracker-step{display:flex; flex-direction:column; align-items:center; gap:6px; z-index:1; flex:1;}
+  .tracker-dot{width:28px; height:28px; border-radius:50%; background:var(--panel2); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--muted);}
+  .tracker-dot.done{background:var(--success); border-color:var(--success); color:#0f1220;}
+  .tracker-dot.current{background:var(--accent); border-color:var(--accent); color:#fff;}
+  .tracker-label{font-size:11px; color:var(--muted); text-align:center;}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; z-index:998; padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:26px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto;}
+  .close-x{float:right; background:none; border:none; color:var(--muted); font-size:20px; cursor:pointer;}
+  .divider{height:1px; background:var(--border); margin:16px 0;}
+  .toast{position:fixed; top:20px; right:20px; background:var(--panel2); border:1px solid var(--border); border-left:4px solid var(--success); padding:14px 18px; border-radius:10px; font-size:13px; box-shadow:0 10px 30px rgba(0,0,0,.4); transform:translateX(120%); transition:transform .3s ease; z-index:999; max-width:280px;}
+  .toast.show{transform:translateX(0);}
+  .toast.error{border-left-color:var(--danger);}
+  .empty-state{text-align:center; padding:30px 10px; color:var(--muted); font-size:13px;}
+  .radio-row{display:flex; gap:10px; margin-top:8px; flex-wrap:wrap;}
+  .radio-option{flex:1; min-width:120px; border:1px solid var(--border); border-radius:10px; padding:12px; cursor:pointer; text-align:center; font-size:13px; transition:.2s;}
+  .radio-option.selected{border-color:var(--accent); background:rgba(124,92,255,.1); color:#fff;}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="brand-icon">🛒</div>Order & Sales Management</div>
+    <div class="cart-pill" onclick="switchTab('cart')">🛒 Cart <span class="cart-count" id="cartCount">0</span></div>
+  </header>
+
+  <div class="stat-row" id="statRow"></div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="shop" onclick="switchTab('shop')">Shop</button>
+    <button class="tab-btn" data-tab="cart" onclick="switchTab('cart')">Cart & Checkout</button>
+    <button class="tab-btn" data-tab="orders" onclick="switchTab('orders')">Order Tracking</button>
+    <button class="tab-btn" data-tab="history" onclick="switchTab('history')">Order History</button>
+    <button class="tab-btn" data-tab="reports" onclick="switchTab('reports')">Sales Reports</button>
+  </div>
+
+  <!-- SHOP -->
+  <div class="panel" id="tab-shop">
+    <div class="shop-layout">
+      <div>
+        <h2 style="margin-bottom:0;">Shop Books</h2>
+        <p class="sub">Add books to your cart and check out.</p>
+        <div class="book-grid" id="shopGrid"></div>
+      </div>
+      <div class="cart-panel">
+        <h3 style="margin-top:0;">Quick Cart</h3>
+        <div id="quickCart"></div>
+        <button class="btn btn-primary" style="width:100%; margin-top:14px;" onclick="switchTab('cart')">Go to Checkout</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CART -->
+  <div class="panel" id="tab-cart" style="display:none;">
+    <h2 style="margin-bottom:0;">Shopping Cart & Checkout</h2>
+    <p class="sub">Review your items and place your order.</p>
+    <div class="shop-layout">
+      <div>
+        <div id="cartItemsList"></div>
+      </div>
+      <div class="cart-panel">
+        <h3 style="margin-top:0;">Order Summary</h3>
+        <div class="cart-summary-row"><span>Subtotal</span><span id="sumSubtotal">₹0</span></div>
+        <div class="cart-summary-row"><span>Shipping</span><span id="sumShipping">₹0</span></div>
+        <div class="cart-summary-row"><span>Tax (5%)</span><span id="sumTax">₹0</span></div>
+        <div class="cart-summary-row total"><span>Total</span><span id="sumTotal">₹0</span></div>
+        <div class="divider"></div>
+        <label>Payment Method</label>
+        <div class="radio-row" id="paymentOptions">
+          <div class="radio-option selected" data-val="card" onclick="selectPayment('card')">💳 Card</div>
+          <div class="radio-option" data-val="upi" onclick="selectPayment('upi')">📱 UPI</div>
+          <div class="radio-option" data-val="cod" onclick="selectPayment('cod')">💵 Cash on Delivery</div>
+        </div>
+        <label>Shipping Address</label>
+        <input type="text" id="shipAddress" placeholder="123 Main St, City">
+        <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="placeOrder()" id="placeOrderBtn">Place Order</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ORDER TRACKING -->
+  <div class="panel" id="tab-orders" style="display:none;">
+    <h2 style="margin-bottom:0;">Order Tracking</h2>
+    <p class="sub">Select an order to view its live status.</p>
+    <div id="trackingContent"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="panel" id="tab-history" style="display:none;">
+    <h2 style="margin-bottom:0;">Order History</h2>
+    <p class="sub">All past and current orders.</p>
+    <table>
+      <thead><tr><th>Order ID</th><th>Date</th><th>Items</th><th>Total</th><th>Payment</th><th>Status</th><th></th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="panel" id="tab-reports" style="display:none;">
+    <h2 style="margin-bottom:0;">Sales Reports</h2>
+    <p class="sub">Snapshot of sales performance.</p>
+    <div class="stat-row" id="reportStats"></div>
+    <h3>Top Selling Books</h3>
+    <table>
+      <thead><tr><th>#</th><th>Title</th><th>Units Sold</th><th>Revenue</th></tr></thead>
+      <tbody id="topBooksBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ORDER DETAIL MODAL -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <button class="close-x" onclick="closeOrderModal()">&times;</button>
+    <div id="orderModalContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let books = [
+  {id:1, title:"The Silent Orbit", author:"Elena Marsh", price:349, stock:24, emoji:"🚀"},
+  {id:2, title:"Whispers of the Old Wood", author:"Callum Reyes", price:299, stock:6, emoji:"🌲"},
+  {id:3, title:"Beneath a Borrowed Sky", author:"Anita Rao", price:249, stock:0, emoji:"🌤️"},
+  {id:4, title:"The Cipher of Rue Marchand", author:"Louis Fontaine", price:399, stock:15, emoji:"🔍"},
+  {id:5, title:"Hearts in Autumn Light", author:"Priya Menon", price:279, stock:3, emoji:"🍂"},
+  {id:6, title:"Atoms & Ashes", author:"Dr. Wren Holt", price:449, stock:18, emoji:"⚛️"},
+  {id:7, title:"The Woman Who Built Bridges", author:"Sofia Adeyemi", price:329, stock:9, emoji:"🌉"},
+  {id:8, title:"Small Habits, Big Change", author:"Marcus Lee", price:199, stock:40, emoji:"🌱"},
+];
+
+let cart = []; // {bookId, qty}
+let selectedPayment = 'card';
+const STAGES = ['Placed','Processing','Shipped','Delivered'];
+
+let orders = [
+  {id:'ORD-1001', date:'2026-07-02', items:[{bookId:1,qty:1,price:349},{bookId:6,qty:1,price:449}], payment:'card', status:'Delivered', address:'44 Lake View Rd, Chennai'},
+  {id:'ORD-1002', date:'2026-07-08', items:[{bookId:4,qty:2,price:399}], payment:'upi', status:'Shipped', address:'12 Palm Grove, Chennai'},
+  {id:'ORD-1003', date:'2026-07-12', items:[{bookId:8,qty:1,price:199},{bookId:2,qty:1,price:299}], payment:'cod', status:'Processing', address:'9 Hill Street, Chennai'},
+  {id:'ORD-1004', date:'2026-07-14', items:[{bookId:7,qty:1,price:329}], payment:'card', status:'Placed', address:'77 River Road, Chennai'},
+];
+let orderCounter = 1005;
+
+function toast(msg, isError=false){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(()=> t.classList.remove('show'), 2600);
+}
+
+function switchTab(name){
+  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).style.display='block';
+  document.querySelector(`.tab-btn[data-tab="${name}"]`).classList.add('active');
+  if(name==='shop') renderShop();
+  if(name==='cart') renderCart();
+  if(name==='orders') renderTracking();
+  if(name==='history') renderHistory();
+  if(name==='reports') renderReports();
+  renderStats();
+}
+
+function bookById(id){ return books.find(b=>b.id===id); }
+
+function renderStats(){
+  const totalOrders = orders.length;
+  const revenue = orders.filter(o=>o.status!=='Cancelled').reduce((s,o)=>s+orderTotal(o).total,0);
+  const pending = orders.filter(o=>o.status!=='Delivered' && o.status!=='Cancelled').length;
+  const cartItems = cart.reduce((s,c)=>s+c.qty,0);
+  document.getElementById('statRow').innerHTML = `
+    <div class="stat-card"><div class="num">${totalOrders}</div><div class="lbl">Total Orders</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--success);">₹${revenue.toFixed(0)}</div><div class="lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--warn);">${pending}</div><div class="lbl">Pending Orders</div></div>
+    <div class="stat-card"><div class="num">${cartItems}</div><div class="lbl">Items in Cart</div></div>
+  `;
+  document.getElementById('cartCount').textContent = cartItems;
+}
+
+// ---------- SHOP ----------
+function renderShop(){
+  const grid = document.getElementById('shopGrid');
+  grid.innerHTML = books.map(b=>{
+    const inCart = cart.find(c=>c.bookId===b.id);
+    const disabled = b.stock===0 ? 'disabled' : '';
+    return `<div class="book-card">
+      <div class="cover">${b.emoji}</div>
+      <div class="book-title">${b.title}</div>
+      <div class="book-author">by ${b.author}</div>
+      <div class="price">₹${b.price}</div>
+      <div class="stock-note">${b.stock>0 ? b.stock+' in stock' : 'Out of stock'}</div>
+      <button class="btn btn-primary btn-sm" ${disabled} onclick="addToCart(${b.id})">${inCart ? `In Cart (${inCart.qty})` : 'Add to Cart'}</button>
+    </div>`;
+  }).join('');
+  renderQuickCart();
+}
+
+function renderQuickCart(){
+  const box = document.getElementById('quickCart');
+  if(cart.length===0){ box.innerHTML = `<div class="empty-state">Your cart is empty.</div>`; return; }
+  box.innerHTML = cart.map(c=>{
+    const b = bookById(c.bookId);
+    return `<div class="cart-item"><span>${b.title} × ${c.qty}</span><span>₹${b.price*c.qty}</span></div>`;
+  }).join('');
+}
+
+function addToCart(id){
+  const b = bookById(id);
+  if(b.stock===0){ toast('This book is out of stock', true); return; }
+  const existing = cart.find(c=>c.bookId===id);
+  if(existing){
+    if(existing.qty >= b.stock){ toast('No more stock available', true); return; }
+    existing.qty++;
+  } else {
+    cart.push({bookId:id, qty:1});
+  }
+  toast(`${b.title} added to cart`);
+  renderShop();
+  renderStats();
+}
+
+// ---------- CART ----------
+function renderCart(){
+  const list = document.getElementById('cartItemsList');
+  if(cart.length===0){
+    list.innerHTML = `<div class="empty-state">Your cart is empty. Go to Shop to add books.</div>`;
+  } else {
+    list.innerHTML = cart.map(c=>{
+      const b = bookById(c.bookId);
+      return `<div class="cart-item">
+        <span>${b.emoji} ${b.title}</span>
+        <div class="qty-controls">
+          <button onclick="changeQty(${b.id},-1)">−</button>
+          <span>${c.qty}</span>
+          <button onclick="changeQty(${b.id},1)">+</button>
+        </div>
+        <span>₹${b.price*c.qty}</span>
+        <button class="btn btn-danger btn-sm" onclick="removeFromCart(${b.id})">Remove</button>
+      </div>`;
+    }).join('');
+  }
+  updateSummary();
+}
+
+function changeQty(id, delta){
+  const c = cart.find(x=>x.bookId===id);
+  const b = bookById(id);
+  if(!c) return;
+  const newQty = c.qty + delta;
+  if(newQty <= 0){ removeFromCart(id); return; }
+  if(newQty > b.stock){ toast('Not enough stock', true); return; }
+  c.qty = newQty;
+  renderCart();
+  renderStats();
+}
+
+function removeFromCart(id){
+  cart = cart.filter(c=>c.bookId!==id);
+  renderCart();
+  renderStats();
+  toast('Item removed from cart', true);
+}
+
+function selectPayment(val){
+  selectedPayment = val;
+  document.querySelectorAll('.radio-option').forEach(el=>el.classList.remove('selected'));
+  document.querySelector(`.radio-option[data-val="${val}"]`).classList.add('selected');
+}
+
+function cartSubtotal(){
+  return cart.reduce((s,c)=> s + bookById(c.bookId).price * c.qty, 0);
+}
+
+function updateSummary(){
+  const subtotal = cartSubtotal();
+  const shipping = subtotal > 0 ? (subtotal > 500 ? 0 : 40) : 0;
+  const tax = subtotal * 0.05;
+  const total = subtotal + shipping + tax;
+  document.getElementById('sumSubtotal').textContent = `₹${subtotal.toFixed(0)}`;
+  document.getElementById('sumShipping').textContent = shipping===0 ? 'Free' : `₹${shipping}`;
+  document.getElementById('sumTax').textContent = `₹${tax.toFixed(0)}`;
+  document.getElementById('sumTotal').textContent = `₹${total.toFixed(0)}`;
+  document.getElementById('placeOrderBtn').disabled = cart.length===0;
+}
+
+function placeOrder(){
+  if(cart.length===0){ toast('Your cart is empty', true); return; }
+  const address = document.getElementById('shipAddress').value.trim();
+  if(!address){ toast('Please enter a shipping address', true); return; }
+
+  const items = cart.map(c=>({bookId:c.bookId, qty:c.qty, price:bookById(c.bookId).price}));
+  items.forEach(it=>{ bookById(it.bookId).stock -= it.qty; });
+
+  const newOrder = {
+    id: `ORD-${orderCounter++}`,
+    date: new Date().toISOString().slice(0,10),
+    items, payment: selectedPayment, status:'Placed', address
+  };
+  orders.unshift(newOrder);
+  cart = [];
+  document.getElementById('shipAddress').value = '';
+  toast(`Order ${newOrder.id} placed successfully!`);
+  renderStats();
+  switchTab('history');
+}
+
+// ---------- ORDER HELPERS ----------
+function orderTotal(o){
+  const subtotal = o.items.reduce((s,it)=>s+it.price*it.qty,0);
+  const shipping = subtotal>500 ? 0 : (subtotal>0?40:0);
+  const tax = subtotal*0.05;
+  return {subtotal, shipping, tax, total: subtotal+shipping+tax};
+}
+function statusClass(status){ return status.toLowerCase(); }
+
+// ---------- TRACKING ----------
+function renderTracking(){
+  const box = document.getElementById('trackingContent');
+  const active = orders.filter(o=>o.status!=='Cancelled');
+  if(active.length===0){ box.innerHTML = `<div class="empty-state">No active orders.</div>`; return; }
+  box.innerHTML = `
+    <select id="trackSelect" onchange="renderTrackerFor(this.value)" style="margin-bottom:20px; max-width:280px;">
+      ${active.map(o=>`<option value="${o.id}">${o.id} — ${o.date}</option>`).join('')}
+    </select>
+    <div id="trackerBox"></div>
+  `;
+  renderTrackerFor(active[0].id);
+}
+
+function renderTrackerFor(orderId){
+  const o = orders.find(x=>x.id===orderId);
+  const box = document.getElementById('trackerBox');
+  const currentIdx = STAGES.indexOf(o.status);
+  const t = orderTotal(o);
+  box.innerHTML = `
+    <div class="tracker">
+      ${STAGES.map((s,i)=>{
+        let cls = i<currentIdx ? 'done' : (i===currentIdx ? 'current' : '');
+        let icon = i<currentIdx ? '✓' : (i+1);
+        return `<div class="tracker-step">
+          <div class="tracker-dot ${cls}">${icon}</div>
+          <div class="tracker-label">${s}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="divider"></div>
+    <p><strong>Shipping to:</strong> ${o.address}</p>
+    <p><strong>Payment:</strong> ${o.payment.toUpperCase()}</p>
+    <p><strong>Total:</strong> ₹${t.total.toFixed(0)}</p>
+    <div class="card-actions" style="margin-top:14px; display:flex; gap:8px;">
+      ${currentIdx < STAGES.length-1 ? `<button class="btn btn-primary btn-sm" onclick="advanceOrder('${o.id}')">Advance to ${STAGES[currentIdx+1]}</button>` : ''}
+      ${o.status==='Placed' ? `<button class="btn btn-danger btn-sm" onclick="cancelOrder('${o.id}')">Cancel Order</button>` : ''}
+    </div>
+  `;
+}
+
+function advanceOrder(id){
+  const o = orders.find(x=>x.id===id);
+  const idx = STAGES.indexOf(o.status);
+  if(idx < STAGES.length-1) o.status = STAGES[idx+1];
+  toast(`${o.id} is now ${o.status}`);
+  renderTracking();
+  renderStats();
+}
+
+function cancelOrder(id){
+  if(!confirm('Cancel this order? Stock will be restored.')) return;
+  const o = orders.find(x=>x.id===id);
+  o.items.forEach(it=>{ bookById(it.bookId).stock += it.qty; });
+  o.status = 'Cancelled';
+  toast('Order cancelled', true);
+  renderTracking();
+  renderHistory();
+  renderStats();
+}
+
+// ---------- HISTORY ----------
+function renderHistory(){
+  const tbody = document.getElementById('historyBody');
+  if(orders.length===0){ tbody.innerHTML = `<tr><td colspan="7" class="empty-state">No orders yet.</td></tr>`; return; }
+  tbody.innerHTML = orders.map(o=>{
+    const t = orderTotal(o);
+    const itemCount = o.items.reduce((s,it)=>s+it.qty,0);
+    return `<tr>
+      <td>${o.id}</td>
+      <td>${o.date}</td>
+      <td>${itemCount} item${itemCount!==1?'s':''}</td>
+      <td>₹${t.total.toFixed(0)}</td>
+      <td>${o.payment.toUpperCase()}</td>
+      <td><span class="badge ${statusClass(o.status)}">${o.status}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="viewOrderDetail('${o.id}')">View</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function viewOrderDetail(id){
+  const o = orders.find(x=>x.id===id);
+  const t = orderTotal(o);
+  const itemsHtml = o.items.map(it=>{
+    const b = bookById(it.bookId);
+    return `<div class="cart-item"><span>${b ? b.title : 'Book'} × ${it.qty}</span><span>₹${it.price*it.qty}</span></div>`;
+  }).join('');
+  document.getElementById('orderModalContent').innerHTML = `
+    <h3>${o.id} <span class="badge ${statusClass(o.status)}">${o.status}</span></h3>
+    <p class="sub" style="margin-top:-6px;">Placed on ${o.date}</p>
+    ${itemsHtml}
+    <div class="divider"></div>
+    <div class="cart-summary-row"><span>Subtotal</span><span>₹${t.subtotal.toFixed(0)}</span></div>
+    <div class="cart-summary-row"><span>Shipping</span><span>${t.shipping===0?'Free':'₹'+t.shipping}</span></div>
+    <div class="cart-summary-row"><span>Tax</span><span>₹${t.tax.toFixed(0)}</span></div>
+    <div class="cart-summary-row total"><span>Total</span><span>₹${t.total.toFixed(0)}</span></div>
+    <div class="divider"></div>
+    <p><strong>Payment:</strong> ${o.payment.toUpperCase()}</p>
+    <p><strong>Ship to:</strong> ${o.address}</p>
+  `;
+  document.getElementById('orderModal').classList.add('show');
+}
+function closeOrderModal(){ document.getElementById('orderModal').classList.remove('show'); }
+
+// ---------- REPORTS ----------
+function renderReports(){
+  const validOrders = orders.filter(o=>o.status!=='Cancelled');
+  const revenue = validOrders.reduce((s,o)=>s+orderTotal(o).total,0);
+  const unitsSold = validOrders.reduce((s,o)=>s+o.items.reduce((a,it)=>a+it.qty,0),0);
+  const avgOrder = validOrders.length ? revenue/validOrders.length : 0;
+  const cancelled = orders.filter(o=>o.status==='Cancelled').length;
+
+  document.getElementById('reportStats').innerHTML = `
+    <div class="stat-card"><div class="num" style="color:var(--success);">₹${revenue.toFixed(0)}</div><div class="lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="num">${unitsSold}</div><div class="lbl">Units Sold</div></div>
+    <div class="stat-card"><div class="num">₹${avgOrder.toFixed(0)}</div><div class="lbl">Avg Order Value</div></div>
+    <div class="stat-card"><div class="num" style="color:var(--danger);">${cancelled}</div><div class="lbl">Cancelled Orders</div></div>
+  `;
+
+  const salesMap = {};
+  validOrders.forEach(o=>o.items.forEach(it=>{
+    if(!salesMap[it.bookId]) salesMap[it.bookId] = {qty:0, revenue:0};
+    salesMap[it.bookId].qty += it.qty;
+    salesMap[it.bookId].revenue += it.qty*it.price;
+  }));
+  const ranked = Object.entries(salesMap).sort((a,b)=>b[1].qty-a[1].qty).slice(0,6);
+  const tbody = document.getElementById('topBooksBody');
+  if(ranked.length===0){ tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No sales data yet.</td></tr>`; return; }
+  tbody.innerHTML = ranked.map(([bookId, data], i)=>{
+    const b = bookById(parseInt(bookId));
+    return `<tr><td>${i+1}</td><td>${b ? b.title : 'Unknown'}</td><td>${data.qty}</td><td>₹${data.revenue.toFixed(0)}</td></tr>`;
+  }).join('');
+}
+
+renderShop();
+renderStats();
+</script>
+</body>
+</html>
